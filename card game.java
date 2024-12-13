@@ -2,16 +2,16 @@ import java.util.*;
 
 public class CardGame {
 
-    // Constants for card suits and ranks
+    // Constant for all the cards
     private static final String[] SUITS = {"Hearts", "Diamonds", "Clubs", "Spades"};
     private static final String[] RANKS = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
     private static final int NUM_CARDS = 52;
     
-    // Card class to represent each card
+    // Card classes
     static class Card {
         String suit;
         String rank;
-        int value; // Numeric value for comparison (Ace = 14, King = 13, ..., 2 = 2)
+        int value; // Numeric value for comparing
         
         Card(String suit, String rank, int value) {
             this.suit = suit;
@@ -40,14 +40,14 @@ public class CardGame {
         System.out.println("\nHand 2:");
         displayHand(hand2);
 
-        // Determine the winner
+        // Deciding the winner
         int hand1Score = calculateHandScore(hand1);
         int hand2Score = calculateHandScore(hand2);
 
         System.out.println("\nHand 1 Score: " + hand1Score);
         System.out.println("Hand 2 Score: " + hand2Score);
 
-        // Determine and display the winner
+        // Determine/display the winner
         if (hand1Score > hand2Score) {
             System.out.println("\nHand 1 wins!");
         } else if (hand2Score > hand1Score) {
@@ -57,16 +57,16 @@ public class CardGame {
         }
     }
 
-    // Create and return a deck of 52 cards
+    // Create/return a deck of 52 cards
     private static Card[] createDeck() {
         Card[] deck = new Card[NUM_CARDS];
         int index = 0;
 
-        // Fill the deck with cards
+        // Fill the deck
         for (String suit : SUITS) {
             for (int i = 0; i < RANKS.length; i++) {
                 String rank = RANKS[i];
-                int value = i + 2; // Value for comparison (Ace = 14, King = 13, ..., 2 = 2)
+                int value = i + 2; // Value for comparing
                 deck[index++] = new Card(suit, rank, value);
             }
         }
@@ -74,7 +74,7 @@ public class CardGame {
         return deck;
     }
 
-    // Shuffle the deck of cards
+    // Shuffling
     private static void shuffleDeck(Card[] deck) {
         Random random = new Random();
         for (int i = 0; i < deck.length; i++) {
@@ -85,21 +85,21 @@ public class CardGame {
         }
     }
 
-    // Deal a hand of 5 cards from the deck (starting at the specified index)
+    // Deal a hand
     private static Card[] dealHand(Card[] deck, int startIndex) {
         Card[] hand = new Card[5];
         System.arraycopy(deck, startIndex, hand, 0, 5);
         return hand;
     }
 
-    // Display the hand of cards
+    // Display the hand
     private static void displayHand(Card[] hand) {
         for (Card card : hand) {
             System.out.println(card);
         }
     }
 
-    // Calculate the score of a hand (sum of card values)
+    // Calculate the score
     private static int calculateHandScore(Card[] hand) {
         int score = 0;
         for (Card card : hand) {
