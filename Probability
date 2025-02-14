@@ -1,0 +1,56 @@
+import java.io.*;
+import java.util.*;
+
+public class Probability {
+    public static void main(String[] args) {
+        String fileName = "/uploads/_letter_frequency.csv";
+        List<String> letters = new ArrayList<>();
+        List<Integer> frequencies = new ArrayList<>();
+        List<Float> percentages = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+            String line;
+            br.readLine(); // Skip header line
+
+            while ((line = br.readLine()) != null) {
+                line = line.replaceAll("\"", "").trim();
+                String[] tokens = line.split(",\\s*");
+
+                if (tokens.length == 3) {
+                    letters.add(tokens[0].trim());
+                    frequencies.add(Integer.parseInt(tokens[1].trim()));
+                    percentages.add(Float.parseFloat(tokens[2].trim()));
+                } else {
+                    System.out.println("Skipping invalid line: " + line);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading the file: " + e.getMessage());
+            return;
+        }
+
+        // Print individual letter frequencies
+        System.out.println("Letter\tFrequency\tPercentage");
+        for (int i = 0; i < letters.size(); i++) {
+            System.out.printf("%s\t%d\t%.1f%%\n", letters.get(i), frequencies.get(i), percentages.get(i));
+        }
+
+        // Calculate average frequency and total percentage
+        int totalFrequency = 0;
+        float totalPercentage = 0;
+
+        for (int frequency : frequencies) {
+            totalFrequency += frequency;
+        }
+
+        for (float percentage : percentages) {
+            totalPercentage += percentage;
+        }
+
+        double averageFrequency = (double) totalFrequency / letters.size();
+
+        // Print the total
+        System.out.println("Total\t" + Math.round(averageFrequency) + "\t" + String.format("%.1f%%", totalPercentage));
+    }
+}
+
