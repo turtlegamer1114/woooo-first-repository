@@ -3,28 +3,31 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 public class Calculator {
+    
+    // Main method 
     public static void main(String[] args) {
-        // Create the scanner
+        // Create scanner object to read user input
         Scanner scanner = new Scanner(System.in);
-        
         // Display opening calculator message
         System.out.println("Calculator (Type /help for instructions)");
         
-        // create the calculator loop
+        // Main loop
         while (true) {
-            System.out.print("> ");  // Prompt the imputinput, make the design look better
-            String input = scanner.nextLine().trim();  // Read user input and remove leading/trailing whitespace
+            // Display the prompt to insert info
+            System.out.print("> ");
+            // Read/trim user input
+            String input = scanner.nextLine().trim();
             
-            // scan for the /help command
+            // Check for help command
             if (input.equalsIgnoreCase("/help")) {
-                showHelp();  // Display information
-                continue;   // Skip to next imput
+                showHelp();  // Display help information
+                continue;     // Skip to next iteration
             }
             
             // Check for exit command
             if (input.equalsIgnoreCase("/exit")) {
                 System.out.println("Exiting calculator...");
-                break;  // Exit the loop and end the program
+                break;  // Exit the loop and end program
             }
             
             // Skip empty inputs
@@ -33,15 +36,15 @@ public class Calculator {
             }
             
             try {
-                // Evaluate the expression remove whitespace
+                // Evaluate expression (remove whitespace)
                 double result = evaluateExpression(input.replaceAll("\\s+", ""));
                 
-                // Check if result has any decimal places, display error message if there are
+                // Check if result has any decimal places
                 if (result % 1 != 0) {
                     throw new ArithmeticException("Decimal results not allowed");
                 }
                 
-                // Convert to long 
+                // Convert to long
                 long longResult = (long) result;
                 String resultStr = Long.toString(longResult);
                 
@@ -50,10 +53,10 @@ public class Calculator {
                     throw new ArithmeticException("Result exceeds 7-digit limit");
                 }
                 
-                // Print the result
+                // Display result
                 System.out.println("= " + longResult);
             } catch (Exception e) {
-                // Handle any errors that occur during evaluation
+                // Handle errors that occur during evaluation
                 System.out.println("Error: " + e.getMessage());
             }
         }
@@ -66,97 +69,183 @@ public class Calculator {
     private static void showHelp() {
         System.out.println("\nCalculator Help:");
         System.out.println("Enter calculations");
-        System.out.println("Supported operations are + (addition - (subtraction) x (multipication) / (division)");
-        System.out.println("Rules for calculating:");
-        System.out.println("1. No decimals");
-        System.out.println("2. Maximum 7 digits as a result");
-        System.out.println("3. Calculator follows PEMDAS rules");
-        System.out.println("Examples of equations:");
-        System.out.println("  2x4+3 → 11");
-        System.out.println("  10-2/2 → 9");
-        System.out.println("calculator Commands:");
-        System.out.println("  /help - Show this help message");
+        System.out.println("Supported operations: + - x / ^ !");
+        System.out.println("Rules:");
+        System.out.println("1. No decimals allowed in input or output");
+        System.out.println("2. Maximum 7-digit results");
+        System.out.println("3. Follows PEMDAS order of operations (Parentheses, Exponents, Multiply/Divide, Add/Subtract)");
+        System.out.println("4. Factorials (!) must be positive integers ≤ 10");
+        System.out.println("5. Factorials and exponents can be used anywhere in the equation");
+        System.out.println("Examples:");
+        System.out.println("  2x4+3 >11 (multiplication before addition)");
+        System.out.println("  10-2/2 >9 (division before subtraction)");
+        System.out.println("  5! >120 (factorial of 5)");
+        System.out.println("  3^4 >81 (3 to the power of 4)");
+        System.out.println("  2 + 3! >8 (factorial in middle of expression)");
+        System.out.println("  2^3 * 4 >32 (exponent in middle of expression)");
+        System.out.println("Commands:");
+        System.out.println("  /help - Display this help message");
         System.out.println("  /exit - Quit the calculator\n");
-        System.out.println("Thank you for using the calculator");
     }
     
-    // Method to evaluate a mathematical expression using the shunting-yard algorithm
+    // Main expression evaluation method
     public static double evaluateExpression(String expression) {
-        // Check for empty expression
+        // Check for empty input
         if (expression.isEmpty()) {
             throw new IllegalArgumentException("Empty expression");
         }
         
-        // Use two stacks: one for numbers and one for operators
+        // Stack numbers/operands
         Deque<Double> numbers = new ArrayDeque<>();
+        // Stack operators
         Deque<Character> operators = new ArrayDeque<>();
         
-        // Process each character in the expression
+        // Process characters in the expression
         for (int i = 0; i < expression.length(); i++) {
             char c = expression.charAt(i);
             
-            // check if character is digit
+            // check if character is a digit
             if (Character.isDigit(c)) {
                 StringBuilder numStr = new StringBuilder();
-                // Keep reading digits until somethign isnt a digit
+                // Read all digits
                 while (i < expression.length() && Character.isDigit(expression.charAt(i))) {
                     numStr.append(expression.charAt(i++));
                 }
-                i--; 
+                i--; // Adjust index 
+                
+                // Push number to stack
                 numbers.push(Double.parseDouble(numStr.toString()));
             } 
-            // check if character is an operator addition, subtraction, multipication for x and X, division
-            else if (c == '+' || c == '-' || c == 'x' || c == 'X' || c == '/') {
-                // Process operators with higher precedence 
-                while (!operators.isEmpty() && hasPrecedence(c, operators.peek())) {
-                    numbers.push(applyOperation(operators.pop(), numbers.pop(), numbers.pop()));
+            // Handle opening parenthesis
+            else if (c == '(') {
+                operators.push(c);
+            }
+            // Handle closing parenthesis
+            else if (c == ')') {
+                // Process all operators 
+                while (!operators.isEmpty() && operators.peek() != '(') {
+                    processOperation(numbers, operators);
                 }
-                operators.push(c);  // Push current operator to a stack
-            } else {
-                // Invalid character error
+               
+                operators.pop(); // Remove the '(' from stack
+            }
+            // Handle factorial operator
+            else if (c == '!') {
+                // Factorial is a unary operator - just process it immediately
+                if (numbers.isEmpty()) {
+                    throw new IllegalArgumentException("Factorial requires a number");
+                }
+                double num = numbers.pop();
+                // Validate factorial 
+                if (num < 0 || num % 1 != 0) throw new IllegalArgumentException("Factorial must be positive integer");
+                if (num > 10) throw new IllegalArgumentException("Factorial > 10");
+                // Calculate factorial and push to stack
+                numbers.push((double) factorial((long)num));
+            }
+            // Handle other operators
+            else if (isOperator(c)) {
+                // Process operators with higher or equal precedence
+                while (!operators.isEmpty() && precedence(c) <= precedence(operators.peek())) {
+                    processOperation(numbers, operators);
+                }
+                // Push current operator to stack
+                operators.push(c);
+            }
+            else {
+                // Invalid character encountered error
                 throw new IllegalArgumentException("Invalid character: '" + c + "'");
             }
         }
         
-        // Process remaining operators 
+        // Process any remaining operators
         while (!operators.isEmpty()) {
-            numbers.push(applyOperation(operators.pop(), numbers.pop(), numbers.pop()));
+            processOperation(numbers, operators);
         }
         
-        // Check if one digit is left (the answer) If not throw error
+        // Final result should be one number
         if (numbers.size() != 1) {
-            throw new IllegalArgumentException("Invalid expression format");
+            throw new IllegalArgumentException("Invalid expression");
         }
         
-        return numbers.pop();  // Return result
+        // Return the final result
+        return numbers.pop();
     }
     
-    // determine operator precedence
-    private static boolean hasPrecedence(char op1, char op2) {
-        // op1 has lower precedence than op2 if:
-        // op1 is multiplication/division and op2 is addition/subtraction
-        if ((op1 == 'x' || op1 == 'X' || op1 == '/') && (op2 == '+' || op2 == '-')) {
-            return false;
+    // Helper method to process an operation
+    private static void processOperation(Deque<Double> numbers, Deque<Character> operators) {
+        char op = operators.pop();
+        if (op == '!') {
+            // Factorial is handled separately in the main loop
+            throw new IllegalArgumentException("Unexpected factorial operator");
+        } else {
+            if (numbers.size() < 2) {
+                throw new IllegalArgumentException("Not enough operands for operator " + op);
+            }
+            double b = numbers.pop();
+            double a = numbers.pop();
+            numbers.push(applyOp(op, b, a));
         }
-        return true;
     }
     
-    // apply an operation
-  private static double applyOperation(char operator, double b, double a) {
-        switch (operator) {
-            case '+': return a + b;  // Addition
-            case '-': return a - b;  // Subtraction
+    // Check if a character is a supported operator (excluding factorial)
+    private static boolean isOperator(char c) {
+        return c == '+' || c == '-' || c == 'x' || c == 'X' || c == '/' || c == '^';
+    }
+    
+    // Define operator precedence a higher number means higher precedence
+    private static int precedence(char op) {
+        switch (op) {
+            case '+':
+            case '-':
+                return 1;  // Lowest precedence
             case 'x':
-            case 'X': return a * b;  // Multiplication Acepts x X
-            case '/':  // Added missing colon here
+            case 'X':
+            case '/':
+                return 2;  // Medium precedence
+            case '^':
+                return 3;  // Higher precedence
+            case '!':
+                return 4;  // Highest precedence (factorial)
+            default:
+                return 0;  // For parentheses
+        }
+    }
+    
+    // Apply an operation to two operands
+    private static double applyOp(char op, double b, double a) {
+        switch (op) {
+            case '+': 
+                return a + b;  // Addition
+            case '-': 
+                return a - b;  // Subtraction
+            case 'x':
+            case 'X': 
+                return a * b;  // Multiplication (accepts both x and X)
+            case '/': 
+                // Check division by zero
                 if (b == 0) throw new ArithmeticException("Division by zero");
                 double result = a / b;
-                // Check if division would produce a decimal 
-                if (result % 1 != 0) {
-                    throw new ArithmeticException("Division would produce decimal");
-                }
+                // Check for decimals
+                if (result % 1 != 0) throw new ArithmeticException("Decimal result");
                 return result;
-            default: throw new IllegalArgumentException("Unknown operator: " + operator);
+            case '^': 
+                // Check for negative exponents
+                if (b < 0) throw new ArithmeticException("Negative exponent");
+                return Math.pow(a, b); 
+            default: 
+                throw new IllegalArgumentException("Unknown operator");
         }
     }
+    
+    // Calculate factorial 
+    private static long factorial(long n) {
+        // Factorial of 0 is 1 (makes them easier)
+        if (n == 0) return 1;
+        long result = 1;
+        // Multiply all numbers from 1 to n
+        for (long i = 1; i <= n; i++) {
+            result *= i;
+        }
+        return result;
+    } 
 }
